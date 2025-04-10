@@ -4,29 +4,30 @@ import os
 import base64
 from langchain_google_genai import ChatGoogleGenerativeAI
 import getpass
+from pydantic import BaseModel, Field
 
 CHERRY_URL = "https://www.bbg.org/collections/cherries"
 OUTPUT_IMAGE = "cherries.png"
 
+class CherryImage(BaseModel):
+    no_blossoms: int = Field(..., description="Number of yellow dots")
+    blossoms: int = Field(..., description="Number of pink and purple flowers")
 
-def scrape_image():
+def scrape_image() -> str:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context()
         page = context.new_page()
-#
         page.goto(CHERRY_URL)
         page.wait_for_load_state("domcontentloaded")
-        page.locator("#cherrymap").screenshot(path=OUTPUT_IMAGE)
+        buffer = page.locator("#cherrymap").screenshot()
+        encoded = base64.b64encode(buffer).decode("utf-8")
         browser.close()
-    print(f"Image saved to {OUTPUT_IMAGE}")
+    return encoded
 
-def analyze_image(iamge_path=OUTPUT_IMAGE): 
+def analyze_image(encoded_image: str): 
     if "GOOGLE_API_KEY" not in os.environ:
         os.environ["GOOGLE_API_KEY"] = getpass.getpass("Enter your Google API Key: ")
-
-    with open(OUTPUT_IMAGE, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
 
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.0-flash-001",
@@ -45,9 +46,12 @@ def analyze_image(iamge_path=OUTPUT_IMAGE):
             }}
         ])
     ]
-    ai_msg = llm.invoke(messages)
-    print(ai_msg)
+    llm = llm.with_structured_output(CherryImage)
+    llm.invoke(messages)
 
 if __name__ == "__main__":
-    scrape_image()
-    #analyze_image()
+    image_str = scrape_image()
+    with open(OUTPUT_IMAGE, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+    result = analyze_image(encoded_string)
+    print(result) 
