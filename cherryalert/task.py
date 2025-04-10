@@ -4,7 +4,7 @@ import os
 import base64
 from langchain_google_genai import ChatGoogleGenerativeAI
 import getpass
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 import dotenv
 
 CHERRY_URL = "https://www.bbg.org/collections/cherries"
@@ -13,6 +13,10 @@ OUTPUT_IMAGE = "cherries.png"
 class CherryImage(BaseModel):
     no_blossoms: int = Field(..., description="Number of yellow dots")
     blossoms: int = Field(..., description="Number of pink and purple flowers")
+
+    @computed_field
+    def blossom_percentage(self) -> float:
+        return (self.blossoms / (self.no_blossoms + self.blossoms)) * 100
 
 def scrape_image() -> str:
     with sync_playwright() as p:
