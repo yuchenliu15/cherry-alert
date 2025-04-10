@@ -5,6 +5,7 @@ import base64
 from langchain_google_genai import ChatGoogleGenerativeAI
 import getpass
 from pydantic import BaseModel, Field
+import dotenv
 
 CHERRY_URL = "https://www.bbg.org/collections/cherries"
 OUTPUT_IMAGE = "cherries.png"
@@ -50,8 +51,9 @@ def analyze_image(encoded_image: str):
     llm.invoke(messages)
 
 if __name__ == "__main__":
+    dotenv.load_dotenv()    
     image_str = scrape_image()
     with open(OUTPUT_IMAGE, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
     result = analyze_image(encoded_string)
-    print(result) 
+    print(result)
