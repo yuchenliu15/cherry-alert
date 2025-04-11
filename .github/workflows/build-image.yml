@@ -28,12 +28,12 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE="REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_REPO/YOUR_IMAGE_NAME"
+          IMAGE="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/quick-function-267016/cloud-run-source-deploy"
           docker build -t $IMAGE .
           docker push $IMAGE
 
       - name: Update Cloud Run Job with New Image
         run: |
           gcloud run jobs update YOUR_JOB_NAME \
-            --image REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_REPO/YOUR_IMAGE_NAME \
-            --region REGION
+            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/quick-function-267016/cloud-run-source-deploy \
+            --region us-central1 \ 
