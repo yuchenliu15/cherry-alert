@@ -1,8 +1,9 @@
 import resend
-import dotenv
 import os
 from .processing import CherryInfo
 import logging
+import dotenv
+dotenv.load_dotenv()
 
 def send(to_email: list[str], cherry: CherryInfo):
 	resend.api_key = os.getenv("RESEND_API")

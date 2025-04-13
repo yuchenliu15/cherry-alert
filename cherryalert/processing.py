@@ -5,8 +5,9 @@ import base64
 from langchain_google_genai import ChatGoogleGenerativeAI
 import getpass
 from pydantic import BaseModel, Field, computed_field
-import dotenv
 import logging
+import dotenv
+dotenv.load_dotenv()
 
 CHERRY_URL = "https://www.bbg.org/collections/cherries"
 OUTPUT_IMAGE = "cherries.png"
