@@ -1,0 +1,39 @@
+name: Deploy Cloud Run Job
+
+on:
+  push:
+    branches:
+      - main  # or your production branch
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy:
+    name: Build and Deploy to Cloud Run Job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Authenticate Docker for Artifact Registry
+        run: gcloud auth configure-docker REGION-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/quick-function-267016/cloud-run-source-deploy"
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Update Cloud Run Job with New Image
+        run: |
+          gcloud run jobs update YOUR_JOB_NAME \
+            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/quick-function-267016/cloud-run-source-deploy \
+            --region us-central1 \ 
